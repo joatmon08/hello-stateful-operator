@@ -1,21 +1,62 @@
 apiVersion: "hello-stateful.example.com/v1alpha1"
 kind: "HelloStateful"
 metadata:
-  name: "example"
+  name: "minikube-hello-stateful"
 spec:
   persistentVolume:
-    storageClassName: standard
-    accessModes:
-      - ReadWriteOnce
-    capacity:
-      storage: 1Gi
-    persistentVolumeReclaimPolicy: Delete
-    hostPath:
-      path: "/tmp/hostpath-provisioner/hello-stateful-pv"
-  persistentVolumeClaim:
-    accessModes:
-      - ReadWriteOnce
-    resources:
-      requests:
+    metadata:
+      name: hello-stateful-pv
+    spec:
+      storageClassName: standard
+      accessModes:
+        - ReadWriteOnce
+      capacity:
         storage: 1Gi
-    storageClassName: standard
+      persistentVolumeReclaimPolicy: Delete
+      hostPath:
+        path: "/tmp/hostpath-provisioner/hello-stateful-pv"
+  persistentVolumeClaim:
+    metadata:
+      name: hello-stateful-pvc
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: standard
+      volumeName: hello-stateful-pv
+  statefulSet:
+    metadata:
+      name: hello-stateful
+    spec:
+      selector:
+        matchLabels:
+          app: hello-stateful
+      serviceName: hello-stateful
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            app: hello-stateful
+        spec:
+          terminationGracePeriodSeconds: 10
+          containers:
+          - name: hello-stateful
+            image: joatmon08/hello-stateful:1.0
+            volumeMounts:
+            - name: stateful-log
+              mountPath: /usr/share/hello
+          volumes:
+            - name: stateful-log
+              persistentVolumeClaim:
+                claimName: hello-stateful-pvc
+  service:
+    metadata:
+      name: hello-stateful
+      labels:
+        app: hello-stateful
+    spec:
+      clusterIP: None
+      selector:
+        app: hello-stateful

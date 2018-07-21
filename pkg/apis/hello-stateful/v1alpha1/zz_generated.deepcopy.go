@@ -74,6 +74,8 @@ func (in *HelloStatefulSpec) DeepCopyInto(out *HelloStatefulSpec) {
 	*out = *in
 	in.PersistentVolume.DeepCopyInto(&out.PersistentVolume)
 	in.PersistentVolumeClaim.DeepCopyInto(&out.PersistentVolumeClaim)
+	in.StatefulSet.DeepCopyInto(&out.StatefulSet)
+	in.Service.DeepCopyInto(&out.Service)
 	return
 }
 
