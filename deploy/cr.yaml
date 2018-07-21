@@ -2,3 +2,20 @@ apiVersion: "hello-stateful.example.com/v1alpha1"
 kind: "HelloStateful"
 metadata:
   name: "example"
+spec:
+  persistentVolume:
+    storageClassName: standard
+    accessModes:
+      - ReadWriteOnce
+    capacity:
+      storage: 1Gi
+    persistentVolumeReclaimPolicy: Delete
+    hostPath:
+      path: "/tmp/hostpath-provisioner/hello-stateful-pv"
+  persistentVolumeClaim:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: standard
