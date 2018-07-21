@@ -1,0 +1,13 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: hellostatefuls.hello-stateful.example.com
+spec:
+  group: hello-stateful.example.com
+  names:
+    kind: HelloStateful
+    listKind: HelloStatefulList
+    plural: hellostatefuls
+    singular: hellostateful
+  scope: Namespaced
+  version: v1alpha1

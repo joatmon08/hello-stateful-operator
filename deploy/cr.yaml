@@ -1,0 +1,4 @@
+apiVersion: "hello-stateful.example.com/v1alpha1"
+kind: "HelloStateful"
+metadata:
+  name: "example"
