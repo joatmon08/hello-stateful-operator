@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sclient"
+	"github.com/operator-framework/operator-sdk/pkg/sdk/internal/metrics"
 
 	"github.com/sirupsen/logrus"
 )
@@ -25,6 +26,7 @@ import (
 var (
 	// informers is the set of all informers for the resources watched by the user
 	informers []Informer
+	collector *metrics.Collector
 )
 
 // Watch watches for changes on the given resource.
@@ -38,14 +40,20 @@ var (
 // Consult the API reference for the Group, Version and Kind of a resource: https://kubernetes.io/docs/reference/
 // namespace is the Namespace to watch for the resource
 // TODO: support opts for specifying label selector
-func Watch(apiVersion, kind, namespace string, resyncPeriod int) {
+func Watch(apiVersion, kind, namespace string, resyncPeriod int, opts ...watchOption) {
 	resourceClient, resourcePluralName, err := k8sclient.GetResourceClient(apiVersion, kind, namespace)
 	// TODO: Better error handling, e.g retry
 	if err != nil {
 		logrus.Errorf("failed to get resource client for (apiVersion:%s, kind:%s, ns:%s): %v", apiVersion, kind, namespace, err)
 		panic(err)
 	}
-	informer := NewInformer(resourcePluralName, namespace, resourceClient, resyncPeriod)
+	if collector == nil {
+		collector = metrics.New()
+		metrics.RegisterCollector(collector)
+	}
+	o := newWatchOp()
+	o.applyOpts(opts)
+	informer := NewInformer(resourcePluralName, namespace, resourceClient, resyncPeriod, collector, o.numWorkers)
 	informers = append(informers, informer)
 }
 

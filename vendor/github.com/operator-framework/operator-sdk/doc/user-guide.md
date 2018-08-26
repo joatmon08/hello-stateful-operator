@@ -4,7 +4,7 @@ This guide walks through an example of building a simple memcached-operator usin
 
 ## Prerequisites
 
-- [dep][dep_tool] version v0.4.1+.
+- [dep][dep_tool] version v0.5.0+.
 - [git][git_tool]
 - [go][go_tool] version v1.10+.
 - [docker][docker_tool] version 17.03+.
@@ -36,6 +36,7 @@ This installs the CLI binary `operator-sdk` at `$GOPATH/bin`.
 Use the CLI to create a new memcached-operator project:
 
 ```sh
+$ mkdir -p $GOPATH/src/github.com/example-inc/
 $ cd $GOPATH/src/github.com/example-inc/
 $ operator-sdk new memcached-operator --api-version=cache.example.com/v1alpha1 --kind=Memcached
 $ cd memcached-operator
@@ -62,6 +63,11 @@ func main() {
   sdk.Handle(stub.NewHandler())
   sdk.Run(context.TODO())
 }
+```
+
+**Note:** The number of concurrent informer workers can be configured with an additional Watch option. The default value is 1 if an argument is not given.
+```Go
+sdk.Watch("cache.example.com/v1alpha1", "Memcached", "default", 5, sdk.WithNumWorkers(n))
 ```
 
 ### Define the Memcached spec and status
