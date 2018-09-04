@@ -2,7 +2,6 @@ package hellostateful
 
 import (
 	"fmt"
-	"io/ioutil"
 
 	"github.com/joatmon08/hello-stateful-operator/pkg/apis/hello-stateful/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
@@ -12,8 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 )
 
 const (
