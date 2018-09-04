@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -24,11 +22,7 @@ type HelloStateful struct {
 }
 
 type HelloStatefulSpec struct {
-	PersistentVolume      corev1.PersistentVolume      `json:"persistentVolume"`
-	PersistentVolumeClaim corev1.PersistentVolumeClaim `json:"persistentVolumeClaim"`
-	StatefulSet           appsv1.StatefulSet           `json:"statefulSet"`
-	Service               corev1.Service               `json:"service"`
+	Replicas int32 `json:"replicas"`
 }
 type HelloStatefulStatus struct {
-	// Fill me
 }

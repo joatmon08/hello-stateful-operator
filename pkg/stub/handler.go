@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/joatmon08/hello-stateful-operator/pkg/apis/hello-stateful/v1alpha1"
-
+	"github.com/joatmon08/hello-stateful-operator/pkg/hellostateful"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 )
 
@@ -22,8 +22,8 @@ type Handler struct {
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
 	case *v1alpha1.HelloStateful:
-		hellostateful := o
-		err := Create(hellostateful)
+		hs := o
+		err := hellostateful.Create(hs)
 		if err != nil {
 			return fmt.Errorf("Failed to generate hello stateful custom resource: %v", err)
 		}
