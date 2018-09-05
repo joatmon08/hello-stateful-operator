@@ -2,7 +2,6 @@ package stub
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/joatmon08/hello-stateful-operator/pkg/apis/hello-stateful/v1alpha1"
 	"github.com/joatmon08/hello-stateful-operator/pkg/hellostateful"
@@ -25,7 +24,11 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		hs := o
 		err := hellostateful.Create(hs)
 		if err != nil {
-			return fmt.Errorf("Failed to generate hello stateful custom resource: %v", err)
+			return err
+		}
+		err = hellostateful.Update(hs)
+		if err != nil {
+			return err
 		}
 	}
 	return nil

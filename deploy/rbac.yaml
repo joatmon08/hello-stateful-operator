@@ -13,12 +13,12 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - persistentvolumeclaims
   - pods
   - services
   - endpoints
   - events
   - configmaps
+  - persistentvolumeclaims
   - secrets
   verbs:
   - "*"
@@ -42,4 +42,30 @@ subjects:
 roleRef:
   kind: Role
   name: hello-stateful-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: hello-stateful-operator-cluster
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - "get"
+  - "list"
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: default-account-hello-stateful-operator-cluster
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: hello-stateful-operator-cluster
   apiGroup: rbac.authorization.k8s.io

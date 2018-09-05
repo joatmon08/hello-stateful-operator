@@ -25,4 +25,5 @@ type HelloStatefulSpec struct {
 	Replicas int32 `json:"replicas"`
 }
 type HelloStatefulStatus struct {
+	BackendVolumes []string
 }

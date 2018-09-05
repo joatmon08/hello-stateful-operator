@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Constants for hello-stateful StatefulSet & Volumes
 const (
 	DISKSIZE        = 1 * 1000 * 1000 * 1000
 	VOLUMENAME      = "log"
@@ -26,6 +27,8 @@ var (
 	terminationGracePeriodSeconds = int64(10)
 )
 
+// Create generates a StatefulSet and Service for
+// hello-stateful
 func Create(hs *v1alpha1.HelloStateful) error {
 	statefulSet, err := newStatefulSet(hs)
 	if err != nil {
@@ -37,7 +40,6 @@ func Create(hs *v1alpha1.HelloStateful) error {
 		logrus.Errorf("Failed to create statefulset: %v", err)
 		return err
 	}
-
 	err = sdk.Get(statefulSet)
 	if err != nil {
 		return fmt.Errorf("Failed to get statefulset: %v", err)
@@ -58,10 +60,6 @@ func Create(hs *v1alpha1.HelloStateful) error {
 		return fmt.Errorf("Failed to get service: %v", err)
 	}
 	return nil
-}
-
-func labelsForHelloStateful(name string) map[string]string {
-	return map[string]string{"app": name}
 }
 
 func newStatefulSet(cr *v1alpha1.HelloStateful) (*appsv1.StatefulSet, error) {
@@ -124,7 +122,7 @@ func newStatefulSet(cr *v1alpha1.HelloStateful) (*appsv1.StatefulSet, error) {
 			},
 		},
 	}
-
+	addOwnerRefToObject(statefulset, asOwner(cr))
 	return statefulset, nil
 }
 
@@ -145,5 +143,23 @@ func newService(cr *v1alpha1.HelloStateful) (*corev1.Service, error) {
 			Selector:  labels,
 		},
 	}
+	addOwnerRefToObject(service, asOwner(cr))
 	return service, nil
+}
+
+// addOwnerRefToObject appends the desired OwnerReference to the object
+func addOwnerRefToObject(obj metav1.Object, ownerRef metav1.OwnerReference) {
+	obj.SetOwnerReferences(append(obj.GetOwnerReferences(), ownerRef))
+}
+
+// asOwner returns an OwnerReference set as the memcached CR
+func asOwner(hs *v1alpha1.HelloStateful) metav1.OwnerReference {
+	trueVar := true
+	return metav1.OwnerReference{
+		APIVersion: hs.APIVersion,
+		Kind:       hs.Kind,
+		Name:       hs.Name,
+		UID:        hs.UID,
+		Controller: &trueVar,
+	}
 }
