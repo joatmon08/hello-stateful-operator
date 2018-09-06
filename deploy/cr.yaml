@@ -3,4 +3,4 @@ kind: "HelloStateful"
 metadata:
   name: "minikube-hello-stateful"
 spec:
-  replicas: 2
+  replicas: 1

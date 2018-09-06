@@ -2,6 +2,8 @@ package hellostateful
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 
 	"github.com/joatmon08/hello-stateful-operator/pkg/apis/hello-stateful/v1alpha1"
@@ -11,9 +13,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
-func Update(cr *v1alpha1.HelloStateful) error {
+func UpdateStatus(cr *v1alpha1.HelloStateful) error {
 	pvcList := &corev1.PersistentVolumeClaimList{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PersistentVolumeClaim",
@@ -59,10 +62,20 @@ func getPersistentVolumeClaims(pvcs []corev1.PersistentVolumeClaim) []string {
 
 func getBackendVolumes(persistentVolumes []string) ([]string, error) {
 	var backendVolumes []string
-	config, err := rest.InClusterConfig()
+	var config *rest.Config
+	var err error
+	if os.Getenv("LOCAL") == "1" {
+		kubeconfig := filepath.Join(
+			os.Getenv("HOME"), ".kube", "config",
+		)
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+	} else {
+		config, err = rest.InClusterConfig()
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err

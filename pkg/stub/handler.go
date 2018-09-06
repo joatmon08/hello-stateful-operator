@@ -26,7 +26,13 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		if err != nil {
 			return err
 		}
+
 		err = hellostateful.Update(hs)
+		if err != nil {
+			return err
+		}
+
+		err = hellostateful.UpdateStatus(hs)
 		if err != nil {
 			return err
 		}

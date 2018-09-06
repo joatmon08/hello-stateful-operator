@@ -1,8 +1,6 @@
 package hellostateful
 
 import (
-	"fmt"
-
 	"github.com/joatmon08/hello-stateful-operator/pkg/apis/hello-stateful/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
@@ -40,24 +38,21 @@ func Create(hs *v1alpha1.HelloStateful) error {
 		logrus.Errorf("Failed to create statefulset: %v", err)
 		return err
 	}
-	err = sdk.Get(statefulSet)
-	if err != nil {
-		return fmt.Errorf("Failed to get statefulset: %v", err)
-	}
 
 	service, err := newService(hs)
 	if err != nil {
-		return fmt.Errorf("Failed to generate service: %v", err)
+		logrus.Errorf("Failed to generate service: %v", err)
+		return err
 	}
 	err = sdk.Create(service)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		logrus.Errorf("Failed to create service: %v", err)
 		return err
 	}
-
 	err = sdk.Get(service)
 	if err != nil {
-		return fmt.Errorf("Failed to get service: %v", err)
+		logrus.Errorf("Failed to get service: %v", err)
+		return err
 	}
 	return nil
 }
