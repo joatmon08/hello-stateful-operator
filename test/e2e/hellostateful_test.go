@@ -2,13 +2,10 @@ package e2e
 
 import (
 	goctx "context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"testing"
 	"time"
 
-	"github.com/ghodss/yaml"
 	hellov1alpha1 "github.com/joatmon08/hello-stateful-operator/pkg/apis/hello-stateful/v1alpha1"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
@@ -19,6 +16,7 @@ import (
 var (
 	retryInterval         = time.Second * 10
 	timeout               = time.Second * 60
+	helloStatefulName     = "test-hello-stateful"
 	customResourceFixture = "./test/e2e/fixtures/cr.yaml"
 )
 
@@ -39,22 +37,20 @@ func TestHelloStateful(t *testing.T) {
 	})
 }
 
-func readYAMLtoHelloStateful(filename string) (*hellov1alpha1.HelloStateful, error) {
-	yamlData, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
+func createHelloStatefulCustomResource(namespace string) *hellov1alpha1.HelloStateful {
+	return &hellov1alpha1.HelloStateful{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "HelloStateful",
+			APIVersion: "hello-stateful.example.com/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      helloStatefulName,
+			Namespace: namespace,
+		},
+		Spec: hellov1alpha1.HelloStatefulSpec{
+			Replicas: 1,
+		},
 	}
-	jsonBytes, err := yaml.YAMLToJSON(yamlData)
-	if err != nil {
-		return nil, err
-	}
-	// unmarshal the json into the kube struct
-	var helloStateful = hellov1alpha1.HelloStateful{}
-	err = json.Unmarshal(jsonBytes, &helloStateful)
-	if err != nil {
-		return nil, err
-	}
-	return &helloStateful, nil
 }
 
 func createTest(t *testing.T, f *framework.Framework, ctx framework.TestCtx) error {
@@ -63,19 +59,17 @@ func createTest(t *testing.T, f *framework.Framework, ctx framework.TestCtx) err
 		return fmt.Errorf("could not get namespace: %v", err)
 	}
 
-	exampleHelloStateful, err := readYAMLtoHelloStateful(customResourceFixture)
+	exampleHelloStateful := createHelloStatefulCustomResource(namespace)
 	if err != nil {
 		return err
 	}
-
-	exampleHelloStateful.ObjectMeta.Namespace = namespace
 
 	err = f.DynamicClient.Create(goctx.TODO(), exampleHelloStateful)
 	if err != nil {
 		return err
 	}
-	// wait for example-hello-stateful to reach 1 replica
-	return e2eutil.WaitForDeployment(t, f.KubeClient, namespace, "example-hello-stateful", 1, retryInterval, timeout)
+	// wait for test-hello-stateful to reach 1 replica
+	return WaitForStatefulSet(t, f.KubeClient, namespace, exampleHelloStateful.Name, 1, retryInterval, timeout)
 }
 
 func HelloStatefulInstance(t *testing.T) {

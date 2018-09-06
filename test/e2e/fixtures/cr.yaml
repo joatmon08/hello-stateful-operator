@@ -1,7 +1,0 @@
-apiVersion: "hello-stateful.example.com/v1alpha1"
-kind: "HelloStateful"
-metadata:
-  name: "example-hello-stateful"
-  namespace: example-hello-stateful-test
-spec:
-  replicas: 1

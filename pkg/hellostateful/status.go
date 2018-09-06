@@ -64,7 +64,6 @@ func getBackendVolumes(persistentVolumes []string) ([]string, error) {
 		return nil, err
 	}
 	clientset, err := kubernetes.NewForConfig(config)
-	fmt.Print(clientset)
 	if err != nil {
 		return nil, err
 	}
