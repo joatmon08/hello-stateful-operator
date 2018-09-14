@@ -36,6 +36,11 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		if err != nil {
 			return err
 		}
+
+		err = hellostateful.Backup(hs)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
