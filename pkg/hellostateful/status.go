@@ -44,6 +44,8 @@ func UpdateStatus(cr *v1alpha1.HelloStateful) error {
 	return nil
 }
 
+
+
 func getPersistentVolumes(pvcs []corev1.PersistentVolumeClaim) []string {
 	var pvNames []string
 	for _, pvc := range pvcs {
