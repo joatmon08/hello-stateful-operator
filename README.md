@@ -21,3 +21,11 @@ Run in local mode for exploratory testing:
     ```
     $ kubectl create -f deploy/cr.yaml
     ```
+
+## To Consider
+In order for us to immutably restore a PV & PVC, we need to create & delete them separately
+from the StatefulSet.
+
+This is a bit annoying to statically define, especially since StatefulSets should probably
+have their own PVs and PVCs anyway. But statically defining a PVC means tying replicas to
+the same PV, which isn't good.

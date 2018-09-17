@@ -53,7 +53,7 @@ func createHelloStatefulCustomResource(namespace string) *hellov1alpha1.HelloSta
 	}
 }
 
-func createTest(t *testing.T, f *framework.Framework, ctx framework.TestCtx) error {
+func createStatefulSetTest(t *testing.T, f *framework.Framework, ctx framework.TestCtx) error {
 	namespace, err := ctx.GetNamespace()
 	if err != nil {
 		return fmt.Errorf("could not get namespace: %v", err)
@@ -70,6 +70,27 @@ func createTest(t *testing.T, f *framework.Framework, ctx framework.TestCtx) err
 	}
 	// wait for test-hello-stateful to reach 1 replica
 	return WaitForStatefulSet(t, f.KubeClient, namespace, exampleHelloStateful.Name, 1, retryInterval, timeout)
+}
+
+func createJobTest(t *testing.T, f *framework.Framework, ctx framework.TestCtx) error {
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		return fmt.Errorf("could not get namespace: %v", err)
+	}
+
+	exampleHelloStateful := createHelloStatefulCustomResource(namespace)
+	if err != nil {
+		return err
+	}
+
+	jobName := fmt.Sprintf("batch-%s", exampleHelloStateful.Name)
+
+	err = f.DynamicClient.Create(goctx.TODO(), exampleHelloStateful)
+	if err != nil {
+		return err
+	}
+	// wait for test-hello-stateful to reach 1 replica
+	return WaitForJob(t, f.KubeClient, namespace, jobName, retryInterval, timeout)
 }
 
 func HelloStatefulInstance(t *testing.T) {
@@ -94,7 +115,11 @@ func HelloStatefulInstance(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = createTest(t, f, ctx); err != nil {
+	if err = createStatefulSetTest(t, f, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = createJobTest(t, f, ctx); err != nil {
 		t.Fatal(err)
 	}
 }
