@@ -65,6 +65,9 @@ $ cd app-operator
 $ operator-sdk build quay.io/example/app-operator
 $ docker push quay.io/example/app-operator
 
+# Update the operator manifest to use the built image name
+$ sed -i 's|REPLACE_IMAGE|quay.io/example/app-operator|g' deploy/operator.yaml
+
 # Deploy the app-operator
 $ kubectl create -f deploy/rbac.yaml
 $ kubectl create -f deploy/crd.yaml
@@ -80,6 +83,7 @@ busy-box   1/1       Running   0          50s
 
 # Cleanup
 $ kubectl delete -f deploy/cr.yaml
+$ kubectl delete -f deploy/crd.yaml
 $ kubectl delete -f deploy/operator.yaml
 $ kubectl delete -f deploy/rbac.yaml
 ```

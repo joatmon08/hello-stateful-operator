@@ -108,13 +108,13 @@
   version = "v0.2.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/golang-lru"
   packages = [
     ".",
     "simplelru"
   ]
-  revision = "0fb14efe8c47ae851c0034ed7a448854d3d34cf3"
+  revision = "20f1fb78b0740ba8c3cb143a61e86ba5c8669768"
+  version = "v0.5.0"
 
 [[projects]]
   branch = "master"
@@ -174,7 +174,7 @@
     "pkg/util/k8sutil",
     "version"
   ]
-  revision = "b3413a692ccfc922aa3eb0c6c79714e12e67f72f"
+  revision = "4d42f93038639104cedc4f01bd68205bb9d3e8f9"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
@@ -228,7 +228,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
 
 [[projects]]
   branch = "master"
@@ -240,7 +240,7 @@
     "http2/hpack",
     "idna"
   ]
-  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
+  revision = "26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2"
 
 [[projects]]
   branch = "master"
@@ -249,7 +249,7 @@
     "unix",
     "windows"
   ]
-  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
+  revision = "ee1b12c67af419cf5a9be3bdbeea7fc1c5f32f11"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -287,7 +287,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "f6ba5742950514ddd66494151ed5498ed77969ca"
+  revision = "90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -520,6 +520,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c7dc55f4c25bd3b0638469a2b52a65721109039c23aeb2c2c492fc32c80b8c31"
+  inputs-digest = "64e581e8812022291e2c36f25f717f9514b1f7a694f4c946d061571d95c1a23d"
   solver-name = "gps-cdcl"
   solver-version = 1

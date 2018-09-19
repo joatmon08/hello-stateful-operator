@@ -59,15 +59,26 @@ By default, the memcached-operator watches `Memcached` resource events as shown 
 
 ```Go
 func main() {
-  sdk.Watch("cache.example.com/v1alpha1", "Memcached", "default", 5)
+  sdk.Watch("cache.example.com/v1alpha1", "Memcached", "default", time.Duration(5)*time.Second)
   sdk.Handle(stub.NewHandler())
   sdk.Run(context.TODO())
 }
 ```
 
-**Note:** The number of concurrent informer workers can be configured with an additional Watch option. The default value is 1 if an argument is not given.
+#### Options
+**Worker Count**
+The number of concurrent informer workers can be configured with an additional Watch option. The default value is 1 if an argument is not given.
 ```Go
-sdk.Watch("cache.example.com/v1alpha1", "Memcached", "default", 5, sdk.WithNumWorkers(n))
+sdk.Watch("cache.example.com/v1alpha1", "Memcached", "default", time.Duration(5)*time.Second, sdk.WithNumWorkers(n))
+```
+
+**Label Selector**
+Label selectors allow the watch to filter resources by kubernetes labels. It can be specified using the standard kubernetes label selector format:
+
+https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
+
+```Go
+sdk.Watch("cache.example.com/v1alpha1", "Memcached", "default", time.Duration(5)*time.Second, sdk.WithLabelSelector("app=myapp"))
 ```
 
 ### Define the Memcached spec and status
@@ -120,6 +131,7 @@ Run as pod inside a Kubernetes cluster is preferred for production use.
 Build the memcached-operator image and push it to a registry:
 ```
 $ operator-sdk build quay.io/example/memcached-operator:v0.0.1
+$ sed -i 's|REPLACE_IMAGE|quay.io/example/memcached-operator:v0.0.1|g' deploy/operator.yaml
 $ docker push quay.io/example/memcached-operator:v0.0.1
 ```
 
