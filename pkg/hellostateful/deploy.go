@@ -1,6 +1,8 @@
 package hellostateful
 
 import (
+	"fmt"
+
 	"github.com/joatmon08/hello-stateful-operator/pkg/apis/hello-stateful/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
@@ -16,18 +18,54 @@ const (
 	DISKSIZE        = 1 * 1000 * 1000 * 1000
 	VOLUMENAME      = "log"
 	VOLUMEMOUNTPATH = "/usr/share/hello"
-	IMAGE           = "joatmon08/hello-stateful:1.0"
+	HOSTPATH        = "/tmp/hostpath-provisioner/%s"
+	IMAGE           = "joatmon08/hello-stateful:latest"
 	CONTAINERNAME   = "hello-stateful"
 )
 
 var (
 	storageClassName              = "standard"
+	diskSize                      = *resource.NewQuantity(DISKSIZE, resource.DecimalSI)
 	terminationGracePeriodSeconds = int64(10)
+	accessMode                    = []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce}
+	resourceList                  = corev1.ResourceList{corev1.ResourceStorage: diskSize}
 )
 
 // Create generates a StatefulSet and Service for
 // hello-stateful
 func Create(hs *v1alpha1.HelloStateful) error {
+	pv, err := newPersistentVolume(hs)
+	if err != nil {
+		logrus.Errorf("Failed to generate persistentVolume: %v", err)
+		return err
+	}
+	err = sdk.Create(pv)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		logrus.Errorf("Failed to create persistentVolume: %v", err)
+		return err
+	}
+	err = sdk.Get(pv)
+	if err != nil {
+		logrus.Errorf("Failed to get persistentVolume: %v", err)
+		return err
+	}
+
+	pvc, err := newPersistentVolumeClaim(hs)
+	if err != nil {
+		logrus.Errorf("Failed to generate persistentVolumeClaim: %v", err)
+		return err
+	}
+	err = sdk.Create(pvc)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		logrus.Errorf("Failed to create persistentVolumeClaim: %v", err)
+		return err
+	}
+	err = sdk.Get(pvc)
+	if err != nil {
+		logrus.Errorf("Failed to get persistentVolumeClaim: %v", err)
+		return err
+	}
+
 	statefulSet, err := newStatefulSet(hs)
 	if err != nil {
 		logrus.Errorf("Failed to generate statefulset: %v", err)
@@ -59,7 +97,6 @@ func Create(hs *v1alpha1.HelloStateful) error {
 
 func newStatefulSet(cr *v1alpha1.HelloStateful) (*appsv1.StatefulSet, error) {
 	labels := labelsForHelloStateful(cr.ObjectMeta.Name)
-	diskSize := *resource.NewQuantity(DISKSIZE, resource.DecimalSI)
 	statefulset := &appsv1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "StatefulSet",
@@ -71,9 +108,7 @@ func newStatefulSet(cr *v1alpha1.HelloStateful) (*appsv1.StatefulSet, error) {
 			Labels:    labels,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
-			},
+			Selector:    labelSelector(labels),
 			ServiceName: cr.ObjectMeta.Name,
 			Replicas:    &cr.Spec.Replicas,
 			Template: corev1.PodTemplateSpec{
@@ -94,22 +129,13 @@ func newStatefulSet(cr *v1alpha1.HelloStateful) (*appsv1.StatefulSet, error) {
 							},
 						},
 					},
-				},
-			},
-			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-				corev1.PersistentVolumeClaim{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      VOLUMENAME,
-						Namespace: cr.Namespace,
-					},
-					Spec: corev1.PersistentVolumeClaimSpec{
-						AccessModes: []corev1.PersistentVolumeAccessMode{
-							corev1.ReadWriteOnce,
-						},
-						StorageClassName: &storageClassName,
-						Resources: corev1.ResourceRequirements{
-							Requests: corev1.ResourceList{
-								corev1.ResourceStorage: diskSize,
+					Volumes: []corev1.Volume{
+						corev1.Volume{
+							Name: VOLUMENAME,
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: cr.ObjectMeta.Name,
+								},
 							},
 						},
 					},
@@ -119,6 +145,55 @@ func newStatefulSet(cr *v1alpha1.HelloStateful) (*appsv1.StatefulSet, error) {
 	}
 	addOwnerRefToObject(statefulset, asOwner(cr))
 	return statefulset, nil
+}
+
+func newPersistentVolume(cr *v1alpha1.HelloStateful) (*corev1.PersistentVolume, error) {
+	labels := labelsForHelloStateful(cr.ObjectMeta.Name)
+	pv := &corev1.PersistentVolume{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "PersistentVolume",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.ObjectMeta.Name,
+			Namespace: cr.Namespace,
+			Labels:    labels,
+		},
+		Spec: corev1.PersistentVolumeSpec{
+			StorageClassName: storageClassName,
+			AccessModes:      accessMode,
+			Capacity:         resourceList,
+			PersistentVolumeSource: corev1.PersistentVolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: fmt.Sprintf(HOSTPATH, cr.ObjectMeta.Name),
+				},
+			},
+		},
+	}
+	addOwnerRefToObject(pv, asOwner(cr))
+	return pv, nil
+}
+
+func newPersistentVolumeClaim(cr *v1alpha1.HelloStateful) (*corev1.PersistentVolumeClaim, error) {
+	labels := labelsForHelloStateful(cr.ObjectMeta.Name)
+	pvc := &corev1.PersistentVolumeClaim{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "PersistentVolumeClaim",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.ObjectMeta.Name,
+			Namespace: cr.Namespace,
+			Labels:    labels,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: accessMode,
+			Selector:    labelSelector(labels),
+			Resources:   corev1.ResourceRequirements{Requests: resourceList},
+		},
+	}
+	addOwnerRefToObject(pvc, asOwner(cr))
+	return pvc, nil
 }
 
 func newService(cr *v1alpha1.HelloStateful) (*corev1.Service, error) {
@@ -134,7 +209,7 @@ func newService(cr *v1alpha1.HelloStateful) (*corev1.Service, error) {
 			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
-			ClusterIP: "None",
+			ClusterIP: corev1.ClusterIPNone,
 			Selector:  labels,
 		},
 	}

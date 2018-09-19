@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: hello-stateful-operator
-          image: joatmon08/sample-operator:latest
+          image: joatmon08/hello-stateful-operator:latest
           ports:
           - containerPort: 60000
             name: metrics

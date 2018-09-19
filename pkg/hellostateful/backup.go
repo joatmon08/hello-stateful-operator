@@ -18,7 +18,7 @@ const (
 	BACKUPVOLUME        = "backup"
 	BACKUPFOLDER        = "/backup"
 	HOSTBACKUPFOLDER    = "/tmp/backup"
-	BACKUPIMAGE         = "joatmon08/hello-stateful-backup:1.0"
+	BACKUPIMAGE         = "joatmon08/hello-stateful-backup:latest"
 	BACKUPCONTAINERNAME = "hello-stateful-backup"
 )
 
