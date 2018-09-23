@@ -16,7 +16,7 @@ import (
 const (
 	APPVOLUME           = "app"
 	BACKUPVOLUME        = "backup"
-	BACKUPFOLDER        = "/backup"
+	BACKUPFOLDER        = "/tmp/backup"
 	HOSTBACKUPFOLDER    = "/tmp/backup"
 	BACKUPIMAGE         = "joatmon08/hello-stateful-backup:latest"
 	BACKUPCONTAINERNAME = "hello-stateful-backup"
@@ -81,7 +81,10 @@ func newCronJob(cr *v1alpha1.HelloStateful) (*batchv1beta1.CronJob, error) {
 											MountPath: cr.Status.BackendVolumes[0],
 										},
 									},
-									Args: []string{cr.Status.BackendVolumes[0]},
+									Args: []string{
+										cr.Status.BackendVolumes[0],
+										BACKUPFOLDER,
+									},
 								},
 							},
 							Volumes: []corev1.Volume{

@@ -5,6 +5,9 @@ local:
 	kubectl apply -f deploy/rbac.yaml
 	OPERATOR_NAME=$(OPERATOR_NAME) LOCAL=1 operator-sdk up local
 
+generate-types:
+	operator-sdk generate k8s
+
 run-local:
 	kubectl create -f deploy/cr.yaml
 
