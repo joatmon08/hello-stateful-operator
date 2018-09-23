@@ -22,12 +22,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
 	case *v1alpha1.HelloStateful:
 		hs := o
-		err := hellostateful.Create(hs)
-		if err != nil {
-			return err
-		}
-
-		err = hellostateful.Update(hs)
+		err := hellostateful.CreateVolume(hs)
 		if err != nil {
 			return err
 		}
@@ -37,10 +32,25 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			return err
 		}
 
-		err = hellostateful.Backup(hs)
+		err = hellostateful.Restore(hs)
 		if err != nil {
 			return err
 		}
+
+		err = hellostateful.Create(hs)
+		if err != nil {
+			return err
+		}
+
+		err = hellostateful.Update(hs)
+		if err != nil {
+			return err
+		}
+
+		// err = hellostateful.Backup(hs)
+		// if err != nil {
+		// 	return err
+		// }
 	}
 	return nil
 }

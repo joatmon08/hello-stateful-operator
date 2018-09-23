@@ -22,8 +22,10 @@ type HelloStateful struct {
 }
 
 type HelloStatefulSpec struct {
-	Replicas int32 `json:"replicas"`
+	Replicas            int32 `json:"replicas"`
+	RestoreFromExisting bool  `json:"restoreFromExisting"`
 }
 type HelloStatefulStatus struct {
 	BackendVolumes []string `json:"backendVolumes"`
+	IsRestored     bool     `json:"isRestored"`
 }

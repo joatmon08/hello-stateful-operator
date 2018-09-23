@@ -12,6 +12,10 @@ func labelsForHelloStatefulBackup(name string) map[string]string {
 	return map[string]string{"service": "backup", "cr": name}
 }
 
+func labelsForHelloStatefulRestore(name string) map[string]string {
+	return map[string]string{"service": "restore", "cr": name}
+}
+
 func labelSelector(labels map[string]string) *metav1.LabelSelector {
 	return &metav1.LabelSelector{MatchLabels: labels}
 }

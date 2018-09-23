@@ -39,7 +39,7 @@ func Backup(hs *v1alpha1.HelloStateful) error {
 	}
 	err = sdk.Get(backupJob)
 	if err != nil {
-		logrus.Errorf("Failed to get service: %v", err)
+		logrus.Errorf("Failed to get backup job: %v", err)
 		return err
 	}
 	return nil

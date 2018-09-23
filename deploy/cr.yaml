@@ -4,3 +4,4 @@ metadata:
   name: "minikube-hello-stateful"
 spec:
   replicas: 1
+  restoreFromExisting: true

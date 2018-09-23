@@ -32,9 +32,7 @@ var (
 	resourceList                  = corev1.ResourceList{corev1.ResourceStorage: diskSize}
 )
 
-// Create generates a StatefulSet and Service for
-// hello-stateful
-func Create(hs *v1alpha1.HelloStateful) error {
+func CreateVolume(hs *v1alpha1.HelloStateful) error {
 	pv, err := newPersistentVolume(hs)
 	if err != nil {
 		logrus.Errorf("Failed to generate persistentVolume: %v", err)
@@ -66,7 +64,12 @@ func Create(hs *v1alpha1.HelloStateful) error {
 		logrus.Errorf("Failed to get persistentVolumeClaim: %v", err)
 		return err
 	}
+	return nil
+}
 
+// Create generates a StatefulSet and Service for
+// hello-stateful
+func Create(hs *v1alpha1.HelloStateful) error {
 	statefulSet, err := newStatefulSet(hs)
 	if err != nil {
 		logrus.Errorf("Failed to generate statefulset: %v", err)
