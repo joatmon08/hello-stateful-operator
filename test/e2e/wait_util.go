@@ -10,9 +10,13 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func WaitForJob(t *testing.T, kubeclient kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
+const BACKUPJOBTHRESHOLDSECONDS = 60
+
+func WaitForCronJob(t *testing.T, kubeclient kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
+	var secondsSinceLastRun int
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		job, err := kubeclient.BatchV1().Jobs(namespace).Get(name, metav1.GetOptions{IncludeUninitialized: true})
+		t.Logf("Checking for cronjob %s in namespace %s\n", name, namespace)
+		job, err := kubeclient.BatchV1beta1().CronJobs(namespace).Get(name, metav1.GetOptions{IncludeUninitialized: true})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				t.Logf("Waiting for availability of %s job\n", name)
@@ -20,16 +24,19 @@ func WaitForJob(t *testing.T, kubeclient kubernetes.Interface, namespace, name s
 			}
 			return false, err
 		}
-		if int(job.Status.Succeeded) > 0 {
-			return true, nil
+		if job.Status.LastScheduleTime != nil {
+			secondsSinceLastRun = int(time.Now().Sub(job.Status.LastScheduleTime.Time).Seconds())
+			if secondsSinceLastRun < BACKUPJOBTHRESHOLDSECONDS {
+				return true, nil
+			}
 		}
-		t.Logf("Waiting for job %s (%d)\n", name, job.Status.Succeeded)
+		t.Logf("Waiting for cron job %s (%d)\n", name, len(job.Status.Active))
 		return false, nil
 	})
 	if err != nil {
 		return err
 	}
-	t.Logf("backup job completed")
+	t.Logf("CronJob available (%d seconds /%d seconds)\n", secondsSinceLastRun, BACKUPJOBTHRESHOLDSECONDS)
 	return nil
 }
 
@@ -53,6 +60,6 @@ func WaitForStatefulSet(t *testing.T, kubeclient kubernetes.Interface, namespace
 	if err != nil {
 		return err
 	}
-	t.Logf("Statefulset available (%d/%d)\n", replicas, replicas)
+	t.Logf("StatefulSet available (%d/%d)\n", replicas, replicas)
 	return nil
 }

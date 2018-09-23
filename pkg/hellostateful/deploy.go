@@ -21,6 +21,7 @@ const (
 	HOSTPATH        = "/tmp/hostpath-provisioner/%s"
 	IMAGE           = "joatmon08/hello-stateful:latest"
 	CONTAINERNAME   = "hello-stateful"
+	IMAGEPULLPOLICY = corev1.PullAlways
 )
 
 var (
@@ -119,8 +120,9 @@ func newStatefulSet(cr *v1alpha1.HelloStateful) (*appsv1.StatefulSet, error) {
 					TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
 					Containers: []corev1.Container{
 						corev1.Container{
-							Name:  CONTAINERNAME,
-							Image: IMAGE,
+							Name:            CONTAINERNAME,
+							Image:           IMAGE,
+							ImagePullPolicy: IMAGEPULLPOLICY,
 							VolumeMounts: []corev1.VolumeMount{
 								corev1.VolumeMount{
 									Name:      VOLUMENAME,
@@ -189,6 +191,7 @@ func newPersistentVolumeClaim(cr *v1alpha1.HelloStateful) (*corev1.PersistentVol
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes: accessMode,
 			Selector:    labelSelector(labels),
+			VolumeName:  cr.ObjectMeta.Name,
 			Resources:   corev1.ResourceRequirements{Requests: resourceList},
 		},
 	}

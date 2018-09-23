@@ -68,8 +68,9 @@ func newCronJob(cr *v1alpha1.HelloStateful) (*batchv1beta1.CronJob, error) {
 							RestartPolicy: corev1.RestartPolicyOnFailure,
 							Containers: []corev1.Container{
 								corev1.Container{
-									Name:  BACKUPCONTAINERNAME,
-									Image: BACKUPIMAGE,
+									Name:            BACKUPCONTAINERNAME,
+									Image:           BACKUPIMAGE,
+									ImagePullPolicy: IMAGEPULLPOLICY,
 									VolumeMounts: []corev1.VolumeMount{
 										corev1.VolumeMount{
 											Name:      BACKUPVOLUME,
