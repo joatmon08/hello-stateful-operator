@@ -13,13 +13,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Constants for the backup job
 const (
-	APPVOLUME           = "app"
-	BACKUPVOLUME        = "backup"
-	BACKUPFOLDER        = "/tmp/backup"
-	HOSTBACKUPFOLDER    = "/tmp/backup"
-	BACKUPIMAGE         = "joatmon08/hello-stateful-backup:latest"
-	BACKUPCONTAINERNAME = "hello-stateful-backup"
+	BackupVolumeName    = "backup"
+	BackupFolder        = "/tmp/backup"
+	HostBackupFolder    = "/tmp/backup"
+	BackupImage         = "joatmon08/hello-stateful-backup:latest"
+	BackupContainerName = "hello-stateful-backup"
 )
 
 // Backup generates a CronJob that backs up
@@ -60,7 +60,7 @@ func newCronJob(cr *v1alpha1.HelloStateful) (*batchv1beta1.CronJob, error) {
 			Labels:    labels,
 		},
 		Spec: batchv1beta1.CronJobSpec{
-			Schedule: "* * * * *",
+			Schedule: cr.Spec.BackupSchedule,
 			JobTemplate: batchv1beta1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
@@ -68,37 +68,37 @@ func newCronJob(cr *v1alpha1.HelloStateful) (*batchv1beta1.CronJob, error) {
 							RestartPolicy: corev1.RestartPolicyOnFailure,
 							Containers: []corev1.Container{
 								corev1.Container{
-									Name:            BACKUPCONTAINERNAME,
-									Image:           BACKUPIMAGE,
-									ImagePullPolicy: IMAGEPULLPOLICY,
+									Name:            BackupContainerName,
+									Image:           BackupImage,
+									ImagePullPolicy: ImagePullPolicy,
 									VolumeMounts: []corev1.VolumeMount{
 										corev1.VolumeMount{
-											Name:      BACKUPVOLUME,
-											MountPath: BACKUPFOLDER,
+											Name:      BackupVolumeName,
+											MountPath: BackupFolder,
 										},
 										corev1.VolumeMount{
-											Name:      APPVOLUME,
+											Name:      AppVolumeName,
 											MountPath: cr.Status.BackendVolumes[0],
 										},
 									},
 									Args: []string{
 										cr.Status.BackendVolumes[0],
-										BACKUPFOLDER,
+										BackupFolder,
 									},
 								},
 							},
 							Volumes: []corev1.Volume{
 								corev1.Volume{
-									Name: BACKUPVOLUME,
+									Name: BackupVolumeName,
 									VolumeSource: corev1.VolumeSource{
 										HostPath: &corev1.HostPathVolumeSource{
-											Path: HOSTBACKUPFOLDER,
+											Path: HostBackupFolder,
 											Type: &backupHostPathType,
 										},
 									},
 								},
 								corev1.Volume{
-									Name: APPVOLUME,
+									Name: AppVolumeName,
 									VolumeSource: corev1.VolumeSource{
 										HostPath: &corev1.HostPathVolumeSource{
 											Path: cr.Status.BackendVolumes[0],

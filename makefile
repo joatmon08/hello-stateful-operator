@@ -27,3 +27,6 @@ clean:
 	kubectl delete -f deploy/operator.yaml --ignore-not-found
 	kubectl delete pvc --all
 	kubectl delete pv --all
+
+clean-all:
+	kubectl delete -f deploy/ --ignore-not-found

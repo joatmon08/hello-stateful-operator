@@ -3,8 +3,6 @@ package hellostateful
 import (
 	"fmt"
 
-	"path/filepath"
-
 	"github.com/joatmon08/hello-stateful-operator/pkg/apis/hello-stateful/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
@@ -14,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Constants for the restore job
 const (
 	RestoreName = "restore-%s"
 )
@@ -48,11 +47,10 @@ func Restore(hs *v1alpha1.HelloStateful) error {
 
 func newJob(cr *v1alpha1.HelloStateful) (*batchv1.Job, error) {
 	labels := labelsForHelloStatefulRestore(cr.ObjectMeta.Name)
-	backupHostPathType := corev1.HostPathDirectory
+	backupHostPathType := corev1.HostPathDirectoryOrCreate
 	appHostPathType := corev1.HostPathDirectory
-	hostpathDirectory := filepath.Dir(cr.Status.BackendVolumes[0])
-	volumeDirectory := filepath.Base(cr.Status.BackendVolumes[0])
-	logrus.Infof("Restoring to: %s", hostpathDirectory)
+	volumeDirectory := cr.ObjectMeta.Name
+	logrus.Infof("Restoring to: %s", HostProvisionerPath)
 	job := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
@@ -69,40 +67,40 @@ func newJob(cr *v1alpha1.HelloStateful) (*batchv1.Job, error) {
 					RestartPolicy: corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						corev1.Container{
-							Name:            BACKUPCONTAINERNAME,
-							Image:           BACKUPIMAGE,
-							ImagePullPolicy: IMAGEPULLPOLICY,
+							Name:            BackupContainerName,
+							Image:           BackupImage,
+							ImagePullPolicy: ImagePullPolicy,
 							VolumeMounts: []corev1.VolumeMount{
 								corev1.VolumeMount{
-									Name:      BACKUPVOLUME,
-									MountPath: BACKUPFOLDER,
+									Name:      BackupVolumeName,
+									MountPath: BackupFolder,
 								},
 								corev1.VolumeMount{
-									Name:      APPVOLUME,
-									MountPath: hostpathDirectory,
+									Name:      AppVolumeName,
+									MountPath: HostProvisionerPath,
 								},
 							},
 							Args: []string{
-								fmt.Sprintf("%s/%s", BACKUPFOLDER, volumeDirectory),
-								hostpathDirectory,
+								fmt.Sprintf("%s/%s", BackupFolder, volumeDirectory),
+								HostProvisionerPath,
 							},
 						},
 					},
 					Volumes: []corev1.Volume{
 						corev1.Volume{
-							Name: BACKUPVOLUME,
+							Name: BackupVolumeName,
 							VolumeSource: corev1.VolumeSource{
 								HostPath: &corev1.HostPathVolumeSource{
-									Path: HOSTBACKUPFOLDER,
+									Path: HostBackupFolder,
 									Type: &backupHostPathType,
 								},
 							},
 						},
 						corev1.Volume{
-							Name: APPVOLUME,
+							Name: AppVolumeName,
 							VolumeSource: corev1.VolumeSource{
 								HostPath: &corev1.HostPathVolumeSource{
-									Path: hostpathDirectory,
+									Path: HostProvisionerPath,
 									Type: &appHostPathType,
 								},
 							},

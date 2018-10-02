@@ -15,23 +15,24 @@ import (
 
 // Constants for hello-stateful StatefulSet & Volumes
 const (
-	DISKSIZE        = 1 * 1000 * 1000 * 1000
-	VOLUMENAME      = "log"
-	VOLUMEMOUNTPATH = "/usr/share/hello"
-	HOSTPATH        = "/tmp/hostpath-provisioner/%s"
-	IMAGE           = "joatmon08/hello-stateful:latest"
-	CONTAINERNAME   = "hello-stateful"
-	IMAGEPULLPOLICY = corev1.PullAlways
+	DiskSize            = 1 * 1000 * 1000 * 1000
+	AppVolumeName       = "app"
+	AppVolumeMountPath  = "/usr/share/hello"
+	HostProvisionerPath = "/tmp/hostpath-provisioner"
+	AppImage            = "joatmon08/hello-stateful:latest"
+	AppContainerName    = "hello-stateful"
+	ImagePullPolicy     = corev1.PullAlways
 )
 
 var (
 	storageClassName              = "standard"
-	diskSize                      = *resource.NewQuantity(DISKSIZE, resource.DecimalSI)
+	diskSize                      = *resource.NewQuantity(DiskSize, resource.DecimalSI)
 	terminationGracePeriodSeconds = int64(10)
 	accessMode                    = []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce}
 	resourceList                  = corev1.ResourceList{corev1.ResourceStorage: diskSize}
 )
 
+// CreateVolume generates a PersistentVolume and Claim.
 func CreateVolume(hs *v1alpha1.HelloStateful) error {
 	pv, err := newPersistentVolume(hs)
 	if err != nil {
@@ -123,20 +124,20 @@ func newStatefulSet(cr *v1alpha1.HelloStateful) (*appsv1.StatefulSet, error) {
 					TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
 					Containers: []corev1.Container{
 						corev1.Container{
-							Name:            CONTAINERNAME,
-							Image:           IMAGE,
-							ImagePullPolicy: IMAGEPULLPOLICY,
+							Name:            AppContainerName,
+							Image:           AppImage,
+							ImagePullPolicy: ImagePullPolicy,
 							VolumeMounts: []corev1.VolumeMount{
 								corev1.VolumeMount{
-									Name:      VOLUMENAME,
-									MountPath: VOLUMEMOUNTPATH,
+									Name:      AppVolumeName,
+									MountPath: AppVolumeMountPath,
 								},
 							},
 						},
 					},
 					Volumes: []corev1.Volume{
 						corev1.Volume{
-							Name: VOLUMENAME,
+							Name: AppVolumeName,
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 									ClaimName: cr.ObjectMeta.Name,
@@ -170,7 +171,7 @@ func newPersistentVolume(cr *v1alpha1.HelloStateful) (*corev1.PersistentVolume, 
 			Capacity:         resourceList,
 			PersistentVolumeSource: corev1.PersistentVolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
-					Path: fmt.Sprintf(HOSTPATH, cr.ObjectMeta.Name),
+					Path: fmt.Sprintf("%s/%s", HostProvisionerPath, cr.ObjectMeta.Name),
 				},
 			},
 		},

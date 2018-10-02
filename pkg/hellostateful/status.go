@@ -16,6 +16,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// UpdateStatus updates the status of HelloStateful CustomResource
+// with hostpath and restoration state.
 func UpdateStatus(cr *v1alpha1.HelloStateful) error {
 	pvcList := &corev1.PersistentVolumeClaimList{
 		TypeMeta: metav1.TypeMeta{
@@ -43,8 +45,6 @@ func UpdateStatus(cr *v1alpha1.HelloStateful) error {
 	}
 	return nil
 }
-
-
 
 func getPersistentVolumes(pvcs []corev1.PersistentVolumeClaim) []string {
 	var pvNames []string

@@ -10,14 +10,14 @@ import (
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
+	helloe2eutil "github.com/joatmon08/hello-stateful-operator/test/e2eutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	retryInterval         = time.Second * 10
-	timeout               = time.Second * 75
-	helloStatefulName     = "test-hello-stateful"
-	customResourceFixture = "./test/e2e/fixtures/cr.yaml"
+	retryInterval     = time.Second * 10
+	timeout           = time.Second * 75
+	helloStatefulName = "test-hello-stateful"
 )
 
 func TestHelloStateful(t *testing.T) {
@@ -48,7 +48,9 @@ func createHelloStatefulCustomResource(namespace string) *hellov1alpha1.HelloSta
 			Namespace: namespace,
 		},
 		Spec: hellov1alpha1.HelloStatefulSpec{
-			Replicas: 1,
+			Replicas:            1,
+			RestoreFromExisting: true,
+			BackupSchedule:      "*/1 * * * *",
 		},
 	}
 }
@@ -68,13 +70,18 @@ func createHelloStatefulTest(t *testing.T, f *framework.Framework, ctx *framewor
 	if err != nil {
 		return err
 	}
+
+	restoreJobName := fmt.Sprintf("restore-%s", exampleHelloStateful.Name)
+	if err = helloe2eutil.WaitForJob(t, f.KubeClient, namespace, restoreJobName, retryInterval, timeout); err != nil {
+		return err
+	}
 	// wait for test-hello-stateful to reach 1 replica
-	if err = WaitForStatefulSet(t, f.KubeClient, namespace, exampleHelloStateful.Name, 1, retryInterval, timeout); err != nil {
+	if err = helloe2eutil.WaitForStatefulSet(t, f.KubeClient, namespace, exampleHelloStateful.Name, 1, retryInterval, timeout); err != nil {
 		return err
 	}
 
-	jobName := fmt.Sprintf("backup-%s", exampleHelloStateful.Name)
-	return WaitForCronJob(t, f.KubeClient, namespace, jobName, retryInterval, timeout)
+	backupJobName := fmt.Sprintf("backup-%s", exampleHelloStateful.Name)
+	return helloe2eutil.WaitForCronJob(t, f.KubeClient, namespace, backupJobName, retryInterval, timeout)
 }
 
 func HelloStatefulInstance(t *testing.T) {

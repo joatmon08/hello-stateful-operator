@@ -1,4 +1,4 @@
-package e2e
+package e2eutil
 
 import (
 	"testing"
@@ -11,6 +11,30 @@ import (
 )
 
 const BACKUPJOBTHRESHOLDSECONDS = 60
+
+func WaitForJob(t *testing.T, kubeclient kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		t.Logf("Checking for job %s in namespace %s\n", name, namespace)
+		job, err := kubeclient.BatchV1().Jobs(namespace).Get(name, metav1.GetOptions{IncludeUninitialized: true})
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				t.Logf("Waiting for availability of %s job\n", name)
+				return false, nil
+			}
+			return false, err
+		}
+		if job.Status.Succeeded > 0 {
+			return true, nil
+		}
+		t.Logf("Waiting for job %s (%d)\n", name, job.Status.Succeeded)
+		return false, nil
+	})
+	if err != nil {
+		return err
+	}
+	t.Log("Job completed\n")
+	return nil
+}
 
 func WaitForCronJob(t *testing.T, kubeclient kubernetes.Interface, namespace, name string, retryInterval, timeout time.Duration) error {
 	var secondsSinceLastRun int

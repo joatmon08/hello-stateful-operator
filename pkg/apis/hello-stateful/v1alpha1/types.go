@@ -24,6 +24,7 @@ type HelloStateful struct {
 type HelloStatefulSpec struct {
 	Replicas            int32 `json:"replicas"`
 	RestoreFromExisting bool  `json:"restoreFromExisting"`
+	BackupSchedule      string `json:"backupSchedule"`
 }
 type HelloStatefulStatus struct {
 	BackendVolumes []string `json:"backendVolumes"`
