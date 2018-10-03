@@ -26,6 +26,9 @@ jobs:
             make dep
             make install
       - run:
+          name: Install dependencies
+          command: dep ensure
+      - run:
           name: Build container
           command: |
             echo $DOCKER_HUB_KEY | docker login -u $DOCKER_HUB_USER --password-stdin
