@@ -1,0 +1,41 @@
+---
+version: 2
+
+defaults: &defaults
+  docker:
+    - image: circleci/golang:1.10
+  working_directory: /go/src/github.com/joatmon08/hello-stateful-operator
+  environment:
+    LIBRARY: joatmon08
+    CONTAINER_NAME: hello-stateful-operator
+
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install operator-sdk
+          command: |
+            mkdir -p /go/src/github.com/operator-framework
+            cd /go/src/github.com/operator-framework
+            git clone https://github.com/operator-framework/operator-sdk
+            cd operator-sdk
+            git checkout master
+            make dep
+            make install
+      - run:
+          name: Build container
+          command: |
+            echo $DOCKER_HUB_KEY | docker login -u $DOCKER_HUB_USER --password-stdin
+            operator-sdk build $LIBRARY/$CONTAINER_NAME:$CIRCLE_BUILD_NUM-$CIRCLE_SHA1
+            docker tag $LIBRARY/$CONTAINER_NAME:$CIRCLE_BUILD_NUM-$CIRCLE_SHA1 $LIBRARY/$CONTAINER_NAME:latest
+            docker push $LIBRARY/$CONTAINER_NAME:$CIRCLE_BUILD_NUM-$CIRCLE_SHA1
+            docker push $LIBRARY/$CONTAINER_NAME:latest
+
+workflows:
+  version: 2
+  hello-stateful-operator:
+    jobs:
+      - build
