@@ -19,7 +19,7 @@ build:
 	operator-sdk build joatmon08/$(OPERATOR_NAME):latest
 	docker push joatmon08/$(OPERATOR_NAME):latest
 
-tests: clean-all
+tests:
 	operator-sdk test -t ./test/e2e
 
 clean:
