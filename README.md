@@ -1,26 +1,49 @@
-Todo:
-1. Convert statefulset to using volume claim template
-2. Update status spec to get volume claim name & volume claim information
-3. figure out how to time backups (snapshots)
+# hello-stateful-operator
 
-Run in local mode for exploratory testing:
-1.  Create the CustomResourceDefintion.
+This is a Kubernetes operator that creates HelloStateful resources
+using the Operator framework. HelloStateful writes the date and time
+to a `stateful.log` file every 10 seconds. It it useful for practicing
+with PersistentVolumes.
+
+The operator itself creates:
+* A StatefulSet for the application.
+* A CronJob for backup of the stateful.log file.
+* A Job run if you choose to do a restore because it existed before.
+
+The CustomResource should be defined as follows:
+```
+apiVersion: "hello-stateful.example.com/v1alpha1"
+kind: "HelloStateful"
+metadata:
+  name: <name here>
+spec:
+  replicas: <number of replicas>
+  restoreFromExisting: <true | false>
+  backupSchedule: <cron schedule notation for backup>
+```
+
+## Pre-Requisites
+* Minikube
+* Kubernetes 1.10
+
+## Run
+1. Deploy the CustomResource Definition & RBAC.
     ```
-    $ kubectl create -f deploy/crd.yaml
+    make setup
     ```
-1.  Apply the RBAC.
+1. Deploy the Operator.
     ```
-    $ kubectl create -f deploy/rbac.yaml
+    kubectl create -f deploy/operator.yaml
     ```
+1. Deploy the HelloStateful Custom Resource.
     ```
-1. Start it up in local mode.
+    kubectl create -f deploy/cr.yaml
     ```
-    $ OPERATOR_NAME=hello-stateful-operator LOCAL=1 operator-sdk up local
-    ```
-1. Create the CustomResource.
-    ```
-    $ kubectl create -f deploy/cr.yaml
-    ```
+
+## Test
+```
+make tests
+```
 
 ## To Consider
 In order for us to immutably restore a PV & PVC, we need to create & delete them separately

@@ -1,8 +1,6 @@
 OPERATOR_NAME=hello-stateful-operator
 
-local:
-	kubectl apply -f deploy/crd.yaml
-	kubectl apply -f deploy/rbac.yaml
+local: setup
 	OPERATOR_NAME=$(OPERATOR_NAME) LOCAL=1 operator-sdk up local
 
 generate-types:
@@ -11,7 +9,11 @@ generate-types:
 run-local:
 	kubectl create -f deploy/cr.yaml
 
-run:
+setup:
+	kubectl apply -f deploy/crd.yaml
+	kubectl apply -f deploy/rbac.yaml
+
+run: setup
 	kubectl create -f deploy/operator.yaml
 	kubectl create -f deploy/cr.yaml
 
